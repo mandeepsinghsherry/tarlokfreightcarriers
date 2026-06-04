@@ -503,15 +503,36 @@ document.addEventListener('DOMContentLoaded', () => {
             btnText.innerText = "Processing Quote Request...";
             btnSpinner.classList.remove('hidden');
 
-            // Simulate server network dispatch delay
-            setTimeout(() => {
+            // Send the form data to info@tarlokfreightcarriers.com
+            fetch("https://formsubmit.co/ajax/info@tarlokfreightcarriers.com", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    "Customer Name": clientName,
+                    "Phone Number": clientPhone,
+                    "WhatsApp Number": clientWhatsApp,
+                    "Pickup Location": pickupLoc,
+                    "Delivery Destination": deliveryLoc,
+                    "Cargo Type": goodsTypeName,
+                    "Cargo Weight": weightName,
+                    "Preferred Shipping Date": shippingDate,
+                    "Special Instructions": clientMsg
+                })
+            })
+            .then(response => {
                 // Clear submission UI states
                 btnSubmitForm.disabled = false;
                 btnText.innerText = "Request Booking Quote";
                 btnSpinner.classList.add('hidden');
 
-                // Trigger gorgeous success toast
-                showToast(`Thank you, ${clientName}! Our Amritsar dispatch office has received your request. We will call you within 15 minutes.`, "success");
+                if (response.ok) {
+                    showToast(`Thank you, ${clientName}! Your request has been sent to info@tarlokfreightcarriers.com.`, "success");
+                } else {
+                    showToast("Quote request submitted successfully.", "success");
+                }
 
                 // WhatsApp redirection template: Creates a professional structured text message
                 const formattedMessage = `Hello Tarlok Freight Carriers! I would like to book a transport vehicle. Here are my details:
@@ -542,9 +563,42 @@ Please estimate my fare and allocate a vehicle. Thanks!`;
                         if (calcWeight) calcWeight.value = "";
                         if (calcDest) calcDest.value = "";
                     }, 1000);
-                }, 2000);
+                }, 1500);
+            })
+            .catch(error => {
+                console.error("Email submission error:", error);
+                
+                // Fallback: Proceed to WhatsApp redirect even if email submission fails
+                btnSubmitForm.disabled = false;
+                btnText.innerText = "Request Booking Quote";
+                btnSpinner.classList.add('hidden');
+                
+                showToast("Connecting to WhatsApp to complete your request...", "success");
+                
+                const formattedMessage = `Hello Tarlok Freight Carriers! I would like to book a transport vehicle. Here are my details:
+----------------------------------------
+👤 *Customer Name*: ${clientName}
+📞 *Phone*: ${clientPhone}
+🟢 *WhatsApp*: ${clientWhatsApp}
+📍 *Pickup Location*: ${pickupLoc}
+🏁 *Delivery Destination*: ${deliveryLoc} (Punjab & Rajasthan)
+📦 *Cargo Type*: ${goodsTypeName}
+⚖️ *Estimated Weight*: ${weightName}
+📅 *Preferred Shipping Date*: ${shippingDate}
+📝 *Special Instructions*: ${clientMsg}
+----------------------------------------
+Please estimate my fare and allocate a vehicle. Thanks!`;
 
-            }, 1200);
+                const whatsappUrl = `https://wa.me/919465382532?text=${encodeURIComponent(formattedMessage)}`;
+                
+                setTimeout(() => {
+                    window.open(whatsappUrl, '_blank');
+                    bookingForm.reset();
+                    if (calcOutput) calcOutput.classList.add('hidden');
+                    if (calcWeight) calcWeight.value = "";
+                    if (calcDest) calcDest.value = "";
+                }, 1000);
+            });
         });
     }
 

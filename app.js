@@ -491,10 +491,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const shippingDate = document.getElementById('shippingDate').value;
             const clientMsg = document.getElementById('clientMsg').value.trim() || 'No special instructions.';
 
-            // Simple validation of phone
-            const phonePattern = /^[6-9]\d{9}$/;
-            if (!phonePattern.test(clientPhone)) {
-                showToast("Please enter a valid 10-digit mobile number starting with 6-9.", "error");
+            // Clean and validate Indian phone number format
+            let cleanPhone = clientPhone.replace(/\D/g, ''); // strip non-digits
+            if (cleanPhone.length > 10 && cleanPhone.startsWith('91')) {
+                cleanPhone = cleanPhone.slice(2);
+            } else if (cleanPhone.length > 10 && cleanPhone.startsWith('0')) {
+                cleanPhone = cleanPhone.slice(1);
+            }
+
+            if (cleanPhone.length !== 10 || !/^[6-9]/.test(cleanPhone)) {
+                showToast("Please enter a valid 10-digit mobile number (e.g., 9876543210).", "error");
                 return;
             }
 
@@ -555,9 +561,9 @@ Please estimate my fare and allocate a vehicle. Thanks!`;
                 setTimeout(() => {
                     showToast("Redirecting to WhatsApp to send booking details directly to our booking yard...", "success");
                     
-                    // Open WhatsApp in a new tab
+                    // Redirect to WhatsApp in the current window to bypass browser popup blockers
                     setTimeout(() => {
-                        window.open(whatsappUrl, '_blank');
+                        window.location.href = whatsappUrl;
                         bookingForm.reset();
                         if (calcOutput) calcOutput.classList.add('hidden');
                         if (calcWeight) calcWeight.value = "";
@@ -592,7 +598,7 @@ Please estimate my fare and allocate a vehicle. Thanks!`;
                 const whatsappUrl = `https://wa.me/919465382532?text=${encodeURIComponent(formattedMessage)}`;
                 
                 setTimeout(() => {
-                    window.open(whatsappUrl, '_blank');
+                    window.location.href = whatsappUrl;
                     bookingForm.reset();
                     if (calcOutput) calcOutput.classList.add('hidden');
                     if (calcWeight) calcWeight.value = "";
